@@ -1,7 +1,7 @@
 
 
 let skynet;
-let dx, dy;
+var bots = [];
 table_offset = 200;
 let start_func = 0;
 let end_time = 0;
@@ -14,8 +14,6 @@ function setup() {
 	drawTable();
 	
 	
-	skynet = new Robot();
-	
 	
 	
 }
@@ -26,17 +24,13 @@ function draw() {
 	background(255);
 	drawTable();
 	
+	for (var i = 0; i < bots.length; i ++ ) { // Whatever the length of that array, update and display all of the objects.
+    bots[i].autopilot();
+    bots[i].display();
+  }
+
 	
-	skynet.display();
-	skynet.autopilot();
-	
-	
-	
-	//setTimeout(skynet.turnLeft(),0);
-	//skynet.turnLeft();
-	//skynet.forward(3);
-//	skynet.ir_sensor();
-  
+
 	
 	
 }
@@ -44,31 +38,32 @@ function draw() {
 class Robot {
 	
 	
-  constructor() {
-    this.x = random(table_offset, windowWidth-table_offset);
-    this.y = random(table_offset, windowHeight-table_offset);
-		this.angle = 90;
+  constructor(xpos, ypos) {
+    this.x = xpos;
+    this.y = ypos;
+		this.angle = random(0,360);
     this.width = 30;
 		this.length = 10;
 		this.ir_val = 255;
     this.speed = 1;
-		
 		this.state = 0;
+		this.dx = 0;
+		this.dy = 0;
 		
   }
 
   forward(speed = 1){
-		dx = cos(this.angle)*speed;
-		dy = sin(this.angle)*speed;
-		this.x = this.x+dx;
-		this.y = this.y+dy;
+		this.dx = cos(this.angle)*speed;
+		this.dy = sin(this.angle)*speed;
+		this.x = this.x+this.dx;
+		this.y = this.y+this.dy;
 	}
 	
 	reverse(speed = 1){
-		dx = cos(this.angle)*speed;
-		dy = sin(this.angle)*speed;
-		this.x = this.x-dx;
-		this.y = this.y-dy;
+		this.dx = cos(this.angle)*speed;
+		this.dy = sin(this.angle)*speed;
+		this.x = this.x-this.dx;
+		this.y = this.y-this.dy;
 	}
 	
 	autopilot(STATE){
@@ -77,29 +72,25 @@ class Robot {
 		
 		switch(this.state){
 			case 0:
-				console.log("IN CASE 0");
-				this.forward();
-				if( this.ir_sensor() == 1) { this.setState(1)}
-				break;
-			case 1:
-				console.log("IN CASE 1");
-				stop();
-				this.state = -1;
-				setTimeout(this.setState.bind(this,2), 1000);
+				
+				if (this.ir_sensor() == 0) { this.forward(7);}
+				else{
+					this.setState(1);
+				}
 				break;
 			  
-			case 2:
-				console.log("IN CASE 2");
-				this.reverse();
-				setTimeout(this.setState.bind(this,3), 1000);
+			case 1:
+				
+				this.reverse(7);
+				setTimeout(this.setState.bind(this,2), 300);
 				
 				break;
 				
 				
-			case 3:
-				console.log("IN CASE 3");
+			case 2:
+				
 				this.turnLeft();
-				setTimeout(this.setState.bind(this,0), 1000);
+				setTimeout(this.setState.bind(this,0), 200);
 				break;
 				
 			
@@ -112,8 +103,7 @@ class Robot {
 	stop(){
 		//do nothing
 		
-		let i;
-		i+=1;
+		
 	}
 	
 	setState(state){
@@ -134,6 +124,7 @@ class Robot {
 	
 	ir_sensor(){
 		this.ir_val = get(this.x, this.y)[0];
+		
 		if (this.ir_val <50){
 			return 1; //dark line detected
 		}
@@ -142,7 +133,7 @@ class Robot {
 	
 	turnLeft(time_ms){
 		
-			this.angle += 1;
+			this.angle += 3;
 		
 	}
 	
@@ -160,9 +151,10 @@ function drawTable(){
 }
 
 function mouseClicked() {
-  
-	start_func = 1;
-	end_time = millis() + 2000;
+	
+    // A new ball object
+  var b = new Robot(mouseX,mouseY); // Make a new object at the mouse location.
+  bots.push(b);
 	
   return false;
 }
